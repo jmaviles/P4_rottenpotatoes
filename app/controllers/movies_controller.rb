@@ -41,7 +41,13 @@ class MoviesController < ApplicationController
   end
 
   def create
-    @movie = Movie.create!(params[:movie])
+    if params[:movie]
+      @movie = Movie.create!(params[:movie])
+     
+    else
+      @movie = Movie.create!(:title => params[:title], :rating => params[:rating], :release_date => params[:release_date])
+       
+    end
     flash[:notice] = "#{@movie.title} was successfully created."
     redirect_to movies_path
   end
@@ -64,4 +70,25 @@ class MoviesController < ApplicationController
     redirect_to movies_path
   end
 
+  def samedirector
+    @movie = Movie.find(params[:id])
+    if @movie.director != nil and @movie.director.length > 0
+        @samedirector_movies = Movie.find_all_by_director(@movie.director)
+    else
+      flash[:notice] = "
+'#{@movie.title}' has no director info"
+      redirect_to movies_path
+    end
+  end
+    
+  def search_tmdb
+    @movies=Movie.find_in_tmdb(params[:search_terms])
+    if @movies == []
+      flash[:warning]= "'#{params[:search_terms]}' was not found in TMDb."
+      redirect_to movies_path
+    elsif @movies == '1'
+      flash[:warning] = "Search not Available"
+      redirect_to movies_path
+    end
+  end
 end
